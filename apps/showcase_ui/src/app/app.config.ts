@@ -19,11 +19,13 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 
 import { routes } from './app.routes';
+import { provideAppTransloco } from './core/i18n/transloco.config';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withXhr())
+    provideHttpClient(withXhr()),
+    provideAppTransloco()
   ]
 };

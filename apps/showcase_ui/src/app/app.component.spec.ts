@@ -18,12 +18,13 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { AppComponent } from './app.component';
+import { provideAppTransloco } from './core/i18n/transloco.config';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [provideRouter([]), provideHttpClient(withXhr())]
+      providers: [provideRouter([]), provideHttpClient(withXhr()), provideAppTransloco()]
     }).compileComponents();
   });
 
