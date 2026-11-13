@@ -893,6 +893,31 @@ def get_google_llm(
     return ModelFactory.create_model(ep)
 
 
+def get_dedicated_llm(
+    model_name: str,
+    provider: str | None = None,
+    temperature: float | None = None,
+    timeout: float | None = None,
+) -> BaseChatModel:
+    """Raw chat model for a config-addressed model name on any provider.
+
+    Dedicated lenses (step summarizer, chunk capsules) name a model directly
+    instead of a node. ``provider`` defaults to Google so existing configs
+    keep their behaviour; any other provider goes through the same endpoint
+    factory the node-based ``get_llm`` uses (e.g. ``openai`` + ``OPENAI_BASE_URL``).
+    """
+    resolved = ModelProvider.from_string(provider)
+    if resolved == ModelProvider.GOOGLE:
+        return get_google_llm(model_name=model_name, temperature=temperature, timeout=timeout)
+    ep = ModelEndpoint(
+        provider=resolved,
+        model_name=model_name,
+        temperature=temperature or 0.0,
+        timeout_seconds=timeout or 60.0,
+    )
+    return ModelFactory.create_model(ep)
+
+
 def _resolve_endpoint(
     ctx: ArtemisContext,
     name: str,

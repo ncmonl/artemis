@@ -65,9 +65,15 @@ async def test_planner_validation():
 def test_planner_validation_node_defaults_to_lightweight_judge():
     """Unconfigured planner_validation resolves to the same flash-lite default
     as the pixel safety net (cheap, temperature 0)."""
-    from artemis.config import get_default_llm_config
+    from artemis.config.llm import LLMConfig, _expand_default_into_nodes
 
-    llm_cfg = get_default_llm_config()
+    # Independent of the local config/artemis.jsonc: no judge node is overridden.
+    default = {
+        "provider": "google",
+        "model": "gemini-2.5-flash",
+        "fallback": {"provider": "google", "model": "gemini-2.0-flash"},
+    }
+    llm_cfg = LLMConfig.model_validate(_expand_default_into_nodes({"default": default}))
     node = llm_cfg.get_agent("planner_validation")
     safety_net = llm_cfg.get_agent("validator_pixel_safety_net")
     assert node.model == safety_net.model

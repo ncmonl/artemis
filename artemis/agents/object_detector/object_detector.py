@@ -124,7 +124,7 @@ async def _run_object_detection(
     queries = queries or []
     templates = templates or ["Point to the following objects: {labels_str}"]
     try:
-        llm = get_llm(ctx, name="object_detector")
+        llm = get_llm(ctx, name="object_detector", is_utils=True)
     except Exception:
         llm = get_llm(ctx, name="operator")
 

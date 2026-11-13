@@ -36,7 +36,7 @@ from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 
 from artemis.context import ArtemisContext
 from artemis.memory.step_memory import JobKey, StepMemoryService
-from artemis.services.llm import RobustChatModelWrapper, get_google_llm, get_llm
+from artemis.services.llm import RobustChatModelWrapper, get_dedicated_llm, get_llm
 from artemis.services.token_meter import record_llm_usage
 from artemis.utils.task_tree import format_actions_clean
 from artemis.utils.visualization import draw_action_overlay_on_image
@@ -153,6 +153,7 @@ class VisualStepSummarizer(StepMemoryService):
         *,
         max_concurrency: int = 1,
         flush_timeout_s: float = 30.0,
+        provider: str | None = None,
     ):
         super().__init__(
             ctx,
@@ -166,11 +167,11 @@ class VisualStepSummarizer(StepMemoryService):
         self._model_name = target_model
         try:
             if model_name:
-                self._llm = get_google_llm(model_name=target_model, temperature=0.0)
+                self._llm = get_dedicated_llm(target_model, provider, temperature=0.0)
             else:
                 self._llm = get_llm(ctx, name="summarizer", is_utils=True)
         except Exception:
-            self._llm = get_google_llm(model_name=target_model, temperature=0.0)
+            self._llm = get_dedicated_llm(target_model, provider, temperature=0.0)
         try:
             configured = getattr(self._llm, "model", None) or getattr(self._llm, "model_name", None)
             if isinstance(configured, str) and configured:
@@ -341,7 +342,7 @@ class VisualStepSummarizer(StepMemoryService):
         """Meter one raw-model lens call as an ``llm_usage`` trace, best-effort.
 
         Gateway-wrapped models already meter at the wrapper exit; only the raw
-        ``get_google_llm`` bypass needs explicit metering here. Lens prompts
+        ``get_dedicated_llm`` bypass needs explicit metering here. Lens prompts
         are tiny and must not overwrite the session's ``last_prompt_tokens``
         (the compaction thresholds' live context base), hence
         ``update_last_prompt=False``.
