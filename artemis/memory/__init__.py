@@ -55,6 +55,7 @@ def ensure_step_memory(ctx):
         cfg = load_agent_config()
         model_name = cfg.flash.step_summarizer.model
         kwargs = {
+            "provider": cfg.flash.step_summarizer.provider,
             "retry_limit": cfg.memory.runtime.retry_limit,
             "max_concurrency": cfg.memory.runtime.max_concurrency,
             "flush_timeout_s": cfg.memory.runtime.flush_timeout_s,

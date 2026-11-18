@@ -126,12 +126,50 @@ class Agent(AgentBase):
         self._initialized = False
         self._task_lock = asyncio.Lock()
 
+    @staticmethod
+    def _config_uses_google() -> bool:
+        """Whether any configured node or dedicated memory model runs on Google.
+
+        Errs on the side of ``True`` so a config that cannot be inspected keeps
+        the historical pre-warming.
+        """
+        try:
+            from artemis.config import load_agent_config
+            from artemis.config.llm import get_default_llm_config
+            from artemis.llm.google import is_google_provider
+
+            providers: list = []
+            stack: list = [get_default_llm_config().model_dump()]
+            while stack:
+                node = stack.pop()
+                if isinstance(node, dict):
+                    if "provider" in node:
+                        providers.append(node["provider"])
+                    stack.extend(node.values())
+                elif isinstance(node, (list, tuple)):
+                    stack.extend(node)
+            agent_cfg = load_agent_config()
+            providers.append(agent_cfg.flash.step_summarizer.provider)
+            providers.append(agent_cfg.memory.chunking.provider)
+            return any(is_google_provider(p) for p in providers)
+        except Exception as exc:
+            logger.debug(f"Could not inspect LLM providers for pre-warming: {exc}")
+            return True
+
     async def _prewarm_llm_connections(self, api_key: str | None = None):
         """Pre-warms the HTTP2/gRPC connection pools for both Native GenAI and LangChain clients in the background."""
         if os.environ.get("ARTEMIS_FAKE_LLM") == "1":
             logger.info("ARTEMIS_FAKE_LLM=1 — skipping real LLM connection pre-warming.")
             publish_startup_progress(
                 "model_ready", "Model connection is ready (fake LLM)", session_id=self._session_id
+            )
+            return
+        if not self._config_uses_google():
+            logger.info("No Google models configured — skipping Gemini connection pre-warming.")
+            publish_startup_progress(
+                "model_ready",
+                "Model connection will initialize on first use",
+                session_id=self._session_id,
             )
             return
         publish_startup_progress(

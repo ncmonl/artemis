@@ -171,28 +171,31 @@ def _expand_default_into_nodes(config_dict: dict) -> dict:
         "object_detector",
     ]
 
-    result: dict[str, Any] = {}
-    for node in all_agent_nodes:
-        node_cfg = dict(default_model_cfg)
-        if node in nodes_override:
-            for k, v in nodes_override[node].items():
-                if isinstance(v, dict) and isinstance(node_cfg.get(k), dict):
-                    node_cfg[k] = {**node_cfg[k], **v}
-                else:
-                    node_cfg[k] = v
-        result[node] = node_cfg
+    # Optional nodes have a built-in default when absent (see
+    # ``LLMConfig.get_agent``), so they are only materialised when the config
+    # overrides them explicitly.
+    optional_agent_nodes = [
+        "history_analyzer",
+        "validator_pixel_safety_net",
+        "planner_validation",
+        "output_analyzer",
+    ]
 
-    utils_dict: dict[str, Any] = {}
-    for util in all_utils_nodes:
-        util_cfg = dict(default_model_cfg)
-        if util in nodes_override:
-            for k, v in nodes_override[util].items():
-                if isinstance(v, dict) and isinstance(util_cfg.get(k), dict):
-                    util_cfg[k] = {**util_cfg[k], **v}
-                else:
-                    util_cfg[k] = v
-        utils_dict[util] = util_cfg
-    result["utils"] = utils_dict
+    def _node_cfg(node: str) -> dict[str, Any]:
+        node_cfg = dict(default_model_cfg)
+        for k, v in nodes_override.get(node, {}).items():
+            if isinstance(v, dict) and isinstance(node_cfg.get(k), dict):
+                node_cfg[k] = {**node_cfg[k], **v}
+            else:
+                node_cfg[k] = v
+        return node_cfg
+
+    result: dict[str, Any] = {node: _node_cfg(node) for node in all_agent_nodes}
+    for node in optional_agent_nodes:
+        if node in nodes_override:
+            result[node] = _node_cfg(node)
+
+    result["utils"] = {util: _node_cfg(util) for util in all_utils_nodes}
 
     return result
 
