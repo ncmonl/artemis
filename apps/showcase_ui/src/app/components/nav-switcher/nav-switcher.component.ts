@@ -14,38 +14,53 @@
  * limitations under the License.
  */
 
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 
 @Component({
   selector: 'app-nav-switcher',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, TranslocoPipe],
   template: `
-    <nav class="floating-nav-switcher" aria-label="Main Navigation">
-      <a 
-        routerLink="/" 
-        routerLinkActive="active" 
+    <nav class="floating-nav-switcher" [attr.aria-label]="'nav.main_navigation' | transloco">
+      <a
+        routerLink="/"
+        routerLinkActive="active"
         [routerLinkActiveOptions]="{exact: true}"
         class="nav-tab-btn"
-        title="Return to Home Launcher to start a new task"
+        [title]="'nav.home_title' | transloco"
       >
         <span class="material-symbols-outlined tab-icon">add_task</span>
-        <span class="tab-label">New / Home</span>
+        <span class="tab-label">{{ 'nav.home' | transloco }}</span>
       </a>
-      <a 
-        routerLink="/workspace" 
-        routerLinkActive="active" 
+      <a
+        routerLink="/workspace"
+        routerLinkActive="active"
         class="nav-tab-btn"
-        title="Open Workspace"
+        [title]="'nav.workspace_title' | transloco"
       >
         <span class="material-symbols-outlined tab-icon">space_dashboard</span>
-        <span class="tab-label">Workspace</span>
+        <span class="tab-label">{{ 'nav.workspace' | transloco }}</span>
       </a>
+      <button
+        type="button"
+        class="nav-tab-btn nav-lang-btn"
+        (click)="language.toggle()"
+        [title]="'nav.switch_language' | transloco"
+        [attr.aria-label]="'nav.switch_language' | transloco"
+      >
+        <span class="material-symbols-outlined tab-icon">translate</span>
+        <!-- Names the language a click switches to, in that language -->
+        <span class="tab-label">{{ language.lang() === 'en' ? '中文' : 'EN' }}</span>
+      </button>
     </nav>
   `,
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./nav-switcher.component.scss']
 })
-export class NavSwitcherComponent {}
+export class NavSwitcherComponent {
+  protected language = inject(LanguageService);
+}

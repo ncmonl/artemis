@@ -17,6 +17,8 @@
 import { Component, ChangeDetectionStrategy, NgZone, DestroyRef, inject, computed, signal, ViewChild, ElementRef, OnInit } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { LanguageService } from '../../core/i18n/language.service';
 import { AgentStreamComponent } from '../../components/agent-stream/agent-stream.component';
 import { ChatInterfaceComponent } from '../../components/chat-interface/chat-interface.component';
 import { FloatingVideoPlayerComponent } from '../../components/floating-video-player/floating-video-player.component';
@@ -27,6 +29,7 @@ import { AgentService } from '../../services/agent.service';
   standalone: true,
   imports: [
     FormsModule,
+    TranslocoPipe,
     AgentStreamComponent,
     ChatInterfaceComponent,
     FloatingVideoPlayerComponent
@@ -39,6 +42,8 @@ export class WorkspaceComponent implements OnInit {
   public agentService = inject(AgentService);
   private zone = inject(NgZone);
   private destroyRef = inject(DestroyRef);
+  private transloco = inject(TranslocoService);
+  private language = inject(LanguageService);
 
   // Default right panel width to 1/3 of the screen (or 450px as fallback)
   public rightPanelWidth = signal<number>(
@@ -107,18 +112,19 @@ export class WorkspaceComponent implements OnInit {
    * Dynamic tooltip and label indicating which task will be stopped
    */
   public stopButtonTitle = computed(() => {
+    this.language.lang(); // re-evaluate on language switch
     const session = this.agentService.currentSession();
     if (session?.initial_goal) {
       const truncated = session.initial_goal.length > 45
         ? session.initial_goal.substring(0, 42) + '...'
         : session.initial_goal;
-      return `Stop current task: "${truncated}"`;
+      return this.transloco.translate('workspace.stop_task_goal', { goal: truncated });
     }
     const curId = this.agentService.currentSessionId();
     if (curId) {
-      return `Stop current task (${curId})`;
+      return this.transloco.translate('workspace.stop_task_id', { id: curId });
     }
-    return 'Stop current running task';
+    return this.transloco.translate('workspace.stop_running_task');
   });
 
   /**
@@ -244,7 +250,7 @@ export class WorkspaceComponent implements OnInit {
       error: (err) => {
         console.error('Failed to submit task:', err);
         this.isSubmitting.set(false);
-        this.errorMessage.set(err.error?.detail || 'The runner is busy. Please wait for current task to finish.');
+        this.errorMessage.set(err.error?.detail || this.transloco.translate('workspace.runner_busy'));
         setTimeout(() => {
           this.errorMessage.set(null);
         }, 5000);

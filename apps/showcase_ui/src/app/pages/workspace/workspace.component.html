@@ -27,7 +27,7 @@ limitations under the License.
         <div class="floating-dock-toast error">
           <span class="material-symbols-outlined toast-icon">error</span>
           <span class="toast-text">{{ errorMessage() }}</span>
-          <button type="button" class="btn-toast-close" (click)="errorMessage.set(null)" aria-label="Close error message">
+          <button type="button" class="btn-toast-close" (click)="errorMessage.set(null)" [attr.aria-label]="'workspace.close_error_message' | transloco">
             <span class="material-symbols-outlined">close</span>
           </button>
         </div>
@@ -89,7 +89,7 @@ limitations under the License.
 
           <!-- Dormant / Capsule Peek View (Visible when mouse is away and input idle) -->
           <div class="capsule-peek-view">
-            <span class="capsule-placeholder">Start a new task...</span>
+            <span class="capsule-placeholder">{{ 'workspace.start_a_new_task' | transloco }}</span>
           </div>
 
           <!-- Expanded Full View Content (Visible on hover, focus, or text) -->
@@ -105,8 +105,8 @@ limitations under the License.
                   rows="1"
                   [disabled]="isSubmitting()"
                   [placeholder]="selectedProfile() === 'pro' 
-                    ? 'Pro: plans first, checks results and recovers from blocked steps. For long or complex tasks'
-                    : 'Flash: fast single-look loop for everyday app tasks'"
+                    ? ('workspace.pro_plans_first_checks_results_and' | transloco)
+                    : ('workspace.flash_fast_single_look_loop_for' | transloco)"
                   class="dock-textarea"
                   spellcheck="false"
                 ></textarea>
@@ -115,7 +115,7 @@ limitations under the License.
               <!-- Clear Button (visible when text is entered) -->
               @if (taskInput.trim() && !isSubmitting()) {
                 <button type="button" class="dock-circle-btn btn-clear"
-                  (click)="clearInput($event)" title="Clear input text" aria-label="Clear input text">
+                  (click)="clearInput($event)" [title]="'workspace.clear_input_text' | transloco" [attr.aria-label]="'workspace.clear_input_text' | transloco">
                   <span class="material-symbols-outlined">close</span>
                 </button>
               }
@@ -136,8 +136,8 @@ limitations under the License.
                 [class.has-content]="!!taskInput.trim()"
                 [disabled]="!taskInput.trim() || isSubmitting()"
                 (click)="submitTask()"
-                [title]="isSubmitting() ? 'Starting task...' : 'Start task (Enter)'"
-                aria-label="Start task"
+                [title]="isSubmitting() ? ('workspace.starting_task' | transloco) : ('workspace.start_task_enter' | transloco)"
+                [attr.aria-label]="'workspace.start_task' | transloco"
                 >
                 @if (isSubmitting()) {
                   <span class="material-symbols-outlined spinning-icon">sync</span>
@@ -152,16 +152,16 @@ limitations under the License.
             <div class="card-footer-row">
               <div class="footer-left-group">
                 <!-- Segmented Architecture Toggle (Flash / Pro) -->
-                <div class="model-profile-toggle" role="group" aria-label="Select Agent Architecture">
+                <div class="model-profile-toggle" role="group" [attr.aria-label]="'workspace.select_agent_architecture' | transloco">
                   <button type="button" class="profile-toggle-pill" [class.active]="selectedProfile() === 'flash'"
                     (mousedown)="$event.preventDefault()" (click)="setProfile('flash', $event)"
-                    title="Flash: fast single-look loop for everyday app tasks (3–5s/step)">
+                    [title]="'workspace.flash_fast_single_look_loop_for_2' | transloco">
                     <span class="material-symbols-outlined pill-icon icon-flash">bolt</span>
                     <span class="pill-label">Flash</span>
                   </button>
                   <button type="button" class="profile-toggle-pill" [class.active]="selectedProfile() === 'pro'"
                     (mousedown)="$event.preventDefault()" (click)="setProfile('pro', $event)"
-                    title="Pro: plans first, checks results and recovers from blocked steps. For long or complex tasks (15–40s/step)">
+                    [title]="'workspace.pro_plans_first_checks_results_and_2' | transloco">
                     <span class="material-symbols-outlined pill-icon icon-pro">psychology</span>
                     <span class="pill-label">Pro</span>
                   </button>
